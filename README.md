@@ -8,6 +8,9 @@ Minimal Express server that issues short-lived tokens for the Chrome extension.
    ```bash
    cp .env.example .env
    ```
+   - `SERIAL_KEY` should match the code you distribute to users.
+   - `TOKEN_SECRET` must be a long random string (used for signing tokens).
+   - `ALLOWED_ORIGINS` can be `*` to allow every origin or a comma-separated list (e.g. `chrome-extension://lcipkfanpbaofcgcadeagcnljbbnechc`).
 2. Install dependencies:
    ```bash
    npm install
@@ -58,5 +61,5 @@ With the server running, reload the Chrome extension. Serial keys must match `SE
    This produces `auth-backend.zip` in the `server/` directory, excluding local `.env` and `node_modules`.
 2. In the Render dashboard, choose **New → Web Service** and upload the zip when prompted.
 3. Set the build command to `npm install` and the start command to `npm start`.
-4. Add the environment variables `PORT`, `SERIAL_KEY`, `TOKEN_TTL_SECONDS`, and `TOKEN_SECRET` in Render’s settings.
+4. Add the environment variables `PORT`, `SERIAL_KEY`, `TOKEN_TTL_SECONDS`, `TOKEN_SECRET`, and `ALLOWED_ORIGINS`. Use `*` to allow all origins or provide a comma-separated list of specific origins.
 5. Deploy and use the generated `https://…onrender.com/api/verify` URL in the Chrome extension manifest and `AUTH_ENDPOINT`.

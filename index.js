@@ -6,12 +6,47 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-app.use(express.json());
 
 const port = Number.parseInt(process.env.PORT ?? '3000', 10);
 const configuredSerialKey = process.env.SERIAL_KEY ?? '123456';
 const ttlSeconds = Number.parseInt(process.env.TOKEN_TTL_SECONDS ?? '60', 10);
 const tokenSecret = process.env.TOKEN_SECRET ?? crypto.randomBytes(32).toString('hex');
+const allowedOriginsRaw = (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowAllOrigins = allowedOriginsRaw.length === 0 || allowedOriginsRaw.includes('*');
+const allowedOrigins = allowAllOrigins ? [] : allowedOriginsRaw;
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const isAllowed = allowAllOrigins || (origin && allowedOrigins.includes(origin));
+
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    res.setHeader('Vary', 'Origin');
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (!isAllowed) {
+      res.status(403).end();
+      return;
+    }
+    res.status(204).end();
+    return;
+  }
+
+  if (!isAllowed && req.method !== 'GET' && req.method !== 'HEAD') {
+    res.status(403).json({ error: 'Origin not allowed.' });
+    return;
+  }
+
+  next();
+});
+
+app.use(express.json());
 
 function timingSafeMatch(given, expected) {
   const givenHash = crypto.createHash('sha256').update(given ?? '').digest();
