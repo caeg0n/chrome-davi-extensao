@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+auth-backend.zip
+package-lock.json
+deploy.sh
+*.tgz
+*.zip
+*.tar
